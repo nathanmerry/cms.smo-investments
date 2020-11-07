@@ -10,7 +10,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/websites', [WebsiteController::class, 'index'])->name('websites');
     Route::get('/websites/{website}/edit', [WebsiteController::class, 'show'])->name('website');;
     Route::post('/websites/save', [WebsiteController::class, 'update']);
-    Route::post('/websites/create', [WebsiteController::class, 'create'])->name('create');
+    Route::get('/websites/create', [WebsiteController::class, 'create'])->name('create');
     Route::get('/websites/store', [WebsiteController::class, 'store']);
 
     // companies
