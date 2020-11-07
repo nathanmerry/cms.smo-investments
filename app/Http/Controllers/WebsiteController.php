@@ -247,6 +247,7 @@ class Websitecontroller extends Controller
         $query->update($data);
 
         Session::flash('message', $data['website_name'] . ' Updated successfully !');
+        
         return redirect('websites/' . $query->get()->first()->website_slug . '/edit');
     }
 

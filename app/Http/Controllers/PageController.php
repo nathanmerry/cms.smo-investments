@@ -14,7 +14,6 @@ class PageController extends Controller
         $data = Page::all();
         $users = DB::table('pages')->get();
 
-        dump($users);
         return view('page.index', ['data' => $data]);
     }
 
