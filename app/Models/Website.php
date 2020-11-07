@@ -13,7 +13,7 @@ class Website extends Model
      *
      * @var string
      */
-    protected $table = 'websites';
+    protected $table = 'website';
     
     protected $fillable = ['Website_Name', 'Website_Slug'];
 
