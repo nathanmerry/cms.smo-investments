@@ -27,7 +27,7 @@ class PageSeeder extends Seeder
         ]);
         Page::updateOrCreate([
             'name' => "FAQ's",
-            'slug' => 'faqs',
+            'slug' => 'faq',
             'content' => 'FAQs content',
         ]);
     }
