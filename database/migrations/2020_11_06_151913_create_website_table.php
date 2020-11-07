@@ -15,9 +15,9 @@ class CreateWebsiteTable extends Migration
     {
         Schema::create('website', function (Blueprint $table) {
             $table->id();
-            $table->string("website_slug")->unique()->nullable();
-            $table->string("website_name")->unique()->nullable();
-            $table->string("website_address")->unique()->nullable();
+            $table->string("website_slug")->nullable();
+            $table->string("website_name")->nullable();
+            $table->string("website_address")->nullable();
             $table->string("website_short_address")->nullable();
             $table->integer("company")->nullable();
             $table->string("logo_url")->nullable();
@@ -34,17 +34,17 @@ class CreateWebsiteTable extends Migration
             $table->string("homepage_span_colour")->nullable();
             $table->string("homepage_reasons_colour")->nullable();
             $table->string("homepage_block_border")->nullable();
-            $table->string("home_cta_one")->nullable();
-            $table->string("home_cta_two")->nullable();
+            $table->longText("home_cta_one")->nullable();
+            $table->longText("home_cta_two")->nullable();
             $table->string("header_font_colour_hover")->nullable();
-            $table->string("home_cta_three")->nullable();
-            $table->string("home_image_one")->nullable();
-            $table->string("home_image_two")->nullable();
-            $table->string("home_image_three")->nullable();
-            $table->string("h1")->nullable();
-            $table->string("h2c")->nullable();
-            $table->string("h3c")->nullable();
-            $table->string("p")->nullable();
+            $table->text("home_cta_three")->nullable();
+            $table->text("home_image_one")->nullable();
+            $table->text("home_image_two")->nullable();
+            $table->text("home_image_three")->nullable();
+            $table->text("h1")->nullable();
+            $table->text("h2c")->nullable();
+            $table->text("h3c")->nullable();
+            $table->text("p")->nullable();
             $table->string("button_colour")->nullable();
             $table->string("button_colour_border")->nullable();
             $table->string("button_colour_hover")->nullable();

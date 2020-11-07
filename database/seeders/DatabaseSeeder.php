@@ -22,6 +22,8 @@ class DatabaseSeeder extends Seeder
                 'api_token' => Str::random(60),
             ]
         );
+
+        // \App\Models\Website::seed();
     }
 }
 
