@@ -10,10 +10,19 @@
   </x-slot>
   <div x-data="websiteForm()" class="py-12">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-      <form method="POST" action="/websites/save" class="pb-8">
+      <form method="POST" action="/websites/save" enctype="multipart/form-data" class="pb-8">
       @csrf
         <div class="grid grid-cols-2 gap-4">
           <div>
+            <div class="mb-4 p-4 bg-white overflow-hidden shadow-xl sm:rounded-lg">
+              <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="logo_filename">
+                  Logo
+                </label>
+                <img class="mb-4" src={{ $data['form']['logo_url'] }}>
+                <input type="file" name="logo_filename" value={{ $data['form']['logo_filename'] }} />
+              </div>
+            </div>
             <div class="mb-4 p-4 bg-white overflow-hidden shadow-xl sm:rounded-lg">
               @foreach ($data['form']['website'] as $key => $value)
                 <div class="mb-4">
@@ -25,6 +34,8 @@
                     value="{{ $value }}" name="{{ $key }}">
                 </div>
               @endforeach 
+
+              
             </div>
             <div class="mb-4 p-4 bg-white overflow-hidden shadow-xl sm:rounded-lg">
               @foreach ($data['form']['ctas'] as $key => $value)
@@ -65,6 +76,23 @@
           </div>
           <div>
             <div class="mb-4 p-4 bg-white overflow-hidden shadow-xl sm:rounded-lg">
+              <label class="block text-gray-700 text-sm font-bold mb-2" for="company">
+                Company
+              </label>
+              <select name="company">
+                @foreach($data['form']['company']['all'] as $company)
+                  <option
+                    value="{{ $company->id }}"
+                    @if($data['form']['company']['selected'])
+                      {{ $data['form']['company']['selected'] === $company->id  ? 'selected' : ''}}
+                    @endif
+                  >
+                    {{ $company->company_name }}
+                  </option>
+                @endforeach
+              </select>            
+            </div>
+            <div class="mb-4 p-4 bg-white overflow-hidden shadow-xl sm:rounded-lg">
               @foreach ($data['form']['color'] as $key => $value)
                 <div class="mb-4">
                   <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ $key }}">
@@ -97,20 +125,11 @@
   </div>
 </x-app-layout>
 
-
-
-
-
-
-
 <script>
   function websiteForm() {
     return {
       colors: @php echo json_encode($data['form']['color']) @endphp,
-
-      colorValue(value) {
-        console.log(value)
-      }
+      imageUrl: @php echo json_encode($data['form']['logo_url']) @endphp,      
     };
   }
 </script>
