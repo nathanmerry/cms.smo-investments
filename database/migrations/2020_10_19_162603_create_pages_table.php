@@ -17,7 +17,7 @@ class CreatePagesTable extends Migration
             $table->id();
             $table->string('name')->nullable();
             $table->string('slug')->nullable();
-            $table->string('content')->nullable();
+            $table->longText('content')->nullable();
         });
     }
 
