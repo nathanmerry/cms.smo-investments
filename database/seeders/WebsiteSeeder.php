@@ -22,7 +22,7 @@ class WebsiteSeeder extends Seeder
         }
 
         foreach ($data as $key => $website) {
-            $saved = Website::create($website);
+            $saved = Website::updateOrCreate($website);
         }
     }
 }
