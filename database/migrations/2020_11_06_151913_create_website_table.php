@@ -15,10 +15,13 @@ class CreateWebsiteTable extends Migration
     {
         Schema::create('website', function (Blueprint $table) {
             $table->id();
-            $table->string("website_slug")->nullable();
-            $table->string("website_name")->nullable();
-            $table->string("website_address")->nullable();
+            $table->string("website_slug")->unique()->nullable();
+            $table->string("website_name")->unique()->nullable();
+            $table->string("website_address")->unique()->nullable();
             $table->string("website_short_address")->nullable();
+            $table->integer("company")->nullable();
+            $table->string("logo_url")->nullable();
+            $table->string("logo_filename")->nullable();
             $table->string("brand_colour")->nullable();
             $table->string("header_colour")->nullable();
             $table->string("header_font_colour")->nullable();
