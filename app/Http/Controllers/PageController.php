@@ -11,64 +11,35 @@ class PageController extends Controller
 {
     public function index()
     {
-        $pages = Page::get()->first()->getAttributes();
+        $data = Page::all();
+        $users = DB::table('pages')->get();
 
-        $data = [];
-
-        foreach ($pages as $key => $page) {
-            array_push($data, [
-                'name' => ucwords(str_replace('_', ' ', strtolower($key))),
-                'slug' => str_replace('_', '-', strtolower($key))
-            ]);
-        }
-
+        dump($users);
         return view('page.index', ['data' => $data]);
     }
 
     public function show($slug)
     {
-        $key = str_replace('-', '_', strtolower($slug));
-        $query = Page::get()->first()->getAttributes();
+        $index = Page::all();
+        $page = Page::where('slug', $slug)->first();
 
-        if (!array_key_exists($key, $query)) {
+        if (!$page) {
             abort(404);
         }
 
-        $pages = [];
-
-        foreach ($query as $key => $page) {
-            array_push($pages, [
-                'name' => ucwords(str_replace('_', ' ', strtolower($key))),
-                'slug' => str_replace('_', '-', strtolower($key)),
-                'key' => $key,
-                'text' => $page
-            ]);
-        }
-
-        $page = null;
-
-        foreach ($pages as $item) {
-            if ($item['slug'] === $slug) {
-                $page = $item;
-            }
-        }
-
-        return view('page.show', ['pages' => $pages, 'form' => $page]);
+        return view('page.show', ['pages' => $index, 'form' => $page]);
     }
 
     public function update(Request $request)
     {
         $data = request()->except('_token');
-        $query = DB::table('pages')
-            ->where('how_it_works', '=', null)
-            ->orWhere('how_it_works', '!=',  null);
+        
+        $page = Page::where('slug', $data['slug'])->first();
 
-        // dump($data);
-        $query->update($data);
+        $page->content = $data['content'];
+        $page->save();
 
         Session::flash('message',  'Page Updated Successfully !');
-
-        $slug = str_replace('_', '-', strtolower(key($data)));
-        return redirect('pages/' . $slug);
+        return redirect('pages/' . $data['slug']);
     }
 }
