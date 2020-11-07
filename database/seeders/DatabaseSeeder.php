@@ -14,16 +14,19 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        \App\Models\User::create(
+        \App\Models\User::updateOrCreate(
             [
                 'name' => 'nathan',
                 'email' => 'nathanmerry9713@gmail.com',
                 'password' => bcrypt('admin'),
                 'api_token' => Str::random(60),
+            ],
+            [
+                'name' => 'sam',
+                'email' => 'sammerrycatch@gmail.com',
+                'password' => bcrypt('gambling911'),
+                'api_token' => Str::random(60),
             ]
         );
-
-        // \App\Models\Website::seed();
     }
 }
-
