@@ -14,13 +14,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        \App\Models\User::updateOrCreate(
+        \App\Models\User::create(
             [
                 'name' => 'nathan',
                 'email' => 'nathanmerry9713@gmail.com',
                 'password' => bcrypt('admin'),
                 'api_token' => Str::random(60),
-            ],
+            ]
+        );
+        \App\Models\User::create(
             [
                 'name' => 'sam',
                 'email' => 'sammerrycatch@gmail.com',
