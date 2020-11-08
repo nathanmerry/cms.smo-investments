@@ -127,8 +127,11 @@ class CompanyController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy()
     {
-        //
+        $query = DB::table('company')->where('id', request()->id);
+        $query->delete();
+
+        return redirect('/companies');
     }
 }

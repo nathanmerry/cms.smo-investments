@@ -12,11 +12,13 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/websites/save', [WebsiteController::class, 'update']);
     Route::get('/websites/create', [WebsiteController::class, 'create'])->name('create');
     Route::get('/websites/store', [WebsiteController::class, 'store']);
+    Route::post('/websites/delete', [WebsiteController::class, 'destroy']);
 
     // companies
     Route::get('/companies', [CompanyController::class, 'index'])->name('companies');
     Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('company');
     Route::post('/companies/save', [CompanyController::class, 'update']);
+    Route::post('/companies/delete', [CompanyController::class, 'destroy']);
 
     // Pages
     Route::get('/pages', [PageController::class, 'index'])->name('pages');

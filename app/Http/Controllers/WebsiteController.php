@@ -251,27 +251,15 @@ class Websitecontroller extends Controller
         return redirect('websites/' . $query->get()->first()->website_slug . '/edit');
     }
 
-    public function slug(request $request)
-    {
-        $getQuery = DB::table('website')->get();
-
-        foreach ($getQuery as $key => $item) {
-            $slug = str_replace(' ', '-', strtolower($item->{'website_name'}));
-
-            $query = DB::table('website')->where('website_name', $item->{'website_name'});
-
-            $query->update(['website_slug' => $slug]);
-        }
-    }
-
     /**
      * remove the specified resource from storage.
      *
      * @param  int  $id
      * @return \illuminate\http\response
      */
-    public function destroy($id)
-    {
-        //
+    public function destroy()
+    {   
+        DB::table('website')->where('id', request()->id)->delete();
+        return redirect('/websites');
     }
 }
