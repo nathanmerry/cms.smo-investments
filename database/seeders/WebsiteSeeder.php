@@ -14,7 +14,7 @@ class WebsiteSeeder extends Seeder
      */
     public function run()
     {
-        $data = json_decode(file_get_contents('./websites.json'), true);
+        $data = json_decode(file_get_contents('./database/seeders/WebsiteSeeder.json'), true);
         foreach ($data as $key => $website) {
             $data[$key] = array_change_key_case($data[$key], CASE_LOWER);
             $data[$key]['website_slug'] = str_replace(' ', '-', strtolower($data[$key]['website_name']));;
