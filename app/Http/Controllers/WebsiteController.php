@@ -132,7 +132,7 @@ class Websitecontroller extends Controller
         });
 
         
-        $ftpFiles = scandir(__DIR__ . '/../../../newsitefiles');
+        $ftpFiles = scandir(app_path() . '/newSiteFiles');
         
         return view('websites.create', ['websites' => $websites, 'ftpFiles' => $ftpFiles]);
     }
