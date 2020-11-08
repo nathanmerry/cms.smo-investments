@@ -38,9 +38,12 @@
                   <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ $key }}">
                     {{ str_replace('_', ' ', $key) }}
                   </label>
-                  <input
+                  <textarea
                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    value="{{ $value }}" name="{{ $key }}">
+                    name="{{ $key }}"
+                  >
+                    {{ $value }}
+                  </textarea>
                 </div>
               @endforeach 
             </div>
@@ -55,6 +58,21 @@
                   <input
                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                     value="{{ $value }}" name="{{ $key }}">
+                </div>
+              @endforeach 
+            </div>
+            <div class="mb-4 p-4 bg-white overflow-hidden shadow-xl sm:rounded-lg">
+              @foreach ($form['long-text'] as $key => $value)
+                <div class="mb-4">
+                  <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ $key }}">
+                    {{ str_replace('_', ' ', $key) }}
+                  </label>
+                  <textarea
+                    class="shadow appearance-none border rounded w-full h-44 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    name="{{ $key }}"
+                  >
+                    {{ $value }}
+                  </textarea>
                 </div>
               @endforeach 
             </div>

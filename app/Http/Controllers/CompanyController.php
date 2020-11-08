@@ -75,22 +75,24 @@ class CompanyController extends Controller
                 "home_step_two" => $company->home_step_two,
                 "home_step_three" => $company->home_step_three
             ],
+            'long-text' => [
+                "rep_example" => $company->rep_example,
+                "credit_report" => $company->credit_report,
+                "homepage_legal_block" => $company->homepage_legal_block,
+                "warning_block_text" => $company->warning_block_text,
+                "home_ctas" => $company->home_ctas
+            ],
             'misc' => [
                 "interestrates" => $company->interestrates,
                 "legal" => $company->legal,
                 "apr" => $company->apr,
-                "rep_example" => $company->rep_example,
-                "credit_report" => $company->credit_report,
                 "increments" => $company->increments,
                 "terms" => $company->terms,
                 "Footer_Text" => $company->Footer_Text,
                 "Warning" => $company->Warning,
                 "fca_number" => $company->fca_number,
                 "ico_number" => $company->ico_number,
-                "homepage_legal_block" => $company->homepage_legal_block,
-                "warning_block_text" => $company->warning_block_text,
                 "terms_url" => $company->terms_url,
-                "home_ctas" => $company->home_ctas
             ]
         ];
 
