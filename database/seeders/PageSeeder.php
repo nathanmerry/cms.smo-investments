@@ -14,18 +14,21 @@ class PageSeeder extends Seeder
      */
     public function run()
     {
-        Page::updateOrCreate([
+        Page::create([
+            'id' => 0,
             'name' => "Scams",
             'slug' => 'scams',
             'content' => 'Scams content',
         ]);
 
-        Page::updateOrCreate([
+        Page::create([
+            'id' => 1,
             'name' => 'How It Works',
             'slug' => 'how-it-works',
             'content' => 'How it works content',
         ]);
-        Page::updateOrCreate([
+        Page::create([
+            'id' => 2,
             'name' => "FAQ's",
             'slug' => 'faq',
             'content' => 'FAQs content',
