@@ -14,9 +14,9 @@
 			</a>
 		</div>
 	</x-slot>
-	<div x-data="createWebsite()" class="py-12">
+	<div class="py-12">
 		<div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-			<form x-on:submit="submit(event)" class="pb-8">
+			<form method="POST" action="/websites/store" class="pb-8">
 				@csrf
 				<div class="grid grid-cols-2 gap-4">
 					<div class="mb-4 p-4 bg-white overflow-hidden shadow-xl sm:rounded-lg">
@@ -24,44 +24,39 @@
 							<label class="block text-gray-700 text-sm font-bold mb-2">Website Name</label>
 							<input
 								class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-								x-model="websiteName"
-								value="{{ old('Website_Name') }}"
-								{{-- required --}}
+								name="website_name"
+								value="{{ old('website_name') }}"
+								required
 							>
-							@error('Website_Name')
-								<p class="mt-3 text-red-600 italic">{{ $errors->first('Website_Name') }}</p>
+							@error('website_name')
+								<p class="mt-3 text-red-600 italic">{{ $errors->first('website_name') }}</p>
 							@enderror
 						</div>
-						<div>
+						<div class="mb-4">
 							<label class="block text-gray-700 text-sm font-bold mb-2">Website Slug</label>
 							<input
 								class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
 								placeholder="For CMS purposes only"
-								x-model="websiteSlug"
-								value="{{ old('Website_Slug') }}"
-								{{-- required --}}
+								name="website_slug"
+								value="{{ old('website_slug') }}"
+								required
 							>
-							@error('Website_Slug')
-								<p class="mt-3 text-red-600 italic">{{ $errors->first('Website_Slug') }}</p>
+							@error('website_slug')
+								<p class="mt-3 text-red-600 italic">{{ $errors->first('website_slug') }}</p>
 							@enderror
 						</div>
-					</div>
-					<div class="mb-4 p-4 bg-white overflow-hidden shadow-xl sm:rounded-lg">
 						<div class="mb-4">
-							<label class="block text-gray-700 text-sm font-bold mb-2">FTP Username</label>
+							<label class="block text-gray-700 text-sm font-bold mb-2">Website Address (long)</label>
 							<input
 								class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-								x-model="ftpUser"
-								{{-- required --}}
+								placeholder="Ensure this is a perfect match to the actual site"
+								name="website_address"
+								value="{{ old('website_address') }}"
+								required
 							>
-						</div>
-						<div>
-							<label class="block text-gray-700 text-sm font-bold mb-2">FTP Password</label>
-							<input
-								class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-								x-model="ftpPassword"
-								{{-- required --}}
-							>
+							@error('website_address')
+								<p class="mt-3 text-red-600 italic">{{ $errors->first('website_address') }}</p>
+							@enderror
 						</div>
 					</div>
 				</div>
@@ -77,7 +72,7 @@
 					</div>
 				</div>
 			</form>
-			<template x-if="popup">
+			{{-- <template x-if="popup">
 				<div class="fixed z-10 inset-0 overflow-y-auto">
 					<div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
 						<div class="fixed inset-0 transition-opacity">
@@ -85,86 +80,6 @@
 						</div>
 						<span class="hidden sm:inline-block sm:align-middle sm:h-screen"></span>&#8203;
 						<div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full" role="dialog" aria-modal="true" aria-labelledby="modal-headline">
-							{{-- <template x-if="ftp">
-								<div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-									<div class="sm:flex sm:items-start">
-										<div 
-											class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full sm:mx-0 sm:h-10 sm:w-10"
-											:class="{
-												'bg-red-100': !ftp.connection,
-												'bg-green-100': ftp.connection
-											}"
-										>
-											<svg x-show="ftp.connection" aria-hidden="true" class="h-6 w-6 text-green-600" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M466.5 83.7l-192-80a48.15 48.15 0 0 0-36.9 0l-192 80C27.7 91.1 16 108.6 16 128c0 198.5 114.5 335.7 221.5 380.3 11.8 4.9 25.1 4.9 36.9 0C360.1 472.6 496 349.3 496 128c0-19.4-11.7-36.9-29.5-44.3zM262.2 478.8c-4 1.6-8.4 1.6-12.3 0C152 440 48 304 48 128c0-6.5 3.9-12.3 9.8-14.8l192-80c3.9-1.6 8.4-1.6 12.3 0l192 80c6 2.5 9.9 8.3 9.8 14.8.1 176-103.9 312-201.7 350.8zm136.2-325c-4.7-4.7-12.3-4.7-17-.1L218 315.8l-69-69.5c-4.7-4.7-12.3-4.7-17-.1l-8.5 8.5c-4.7 4.7-4.7 12.3-.1 17l85.9 86.6c4.7 4.7 12.3 4.7 17 .1l180.5-179c4.7-4.7 4.7-12.3.1-17z" class=""></path></svg>
-											<svg x-show="!ftp.connection" class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-										</div>
-										<div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-											<h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-headline" x-text="ftp.header"></h3>
-											<div class="mt-2">
-												<p class="text-sm leading-5 text-gray-500" x-html="ftp.description">
-												</p>
-											</div>
-										</div>
-									</div>
-								</div>
-								<div x-show="ftp" class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-									<template x-if="ftp.connection">
-										<span class="flex w-full rounded-md shadow-sm sm:ml-3 sm:w-auto">
-											<button x-on:click="onClickUpload()" type="button" class="inline-flex justify-center w-full rounded-md border border-transparent px-4 py-2 bg-green-600 text-base leading-6 font-medium text-white shadow-sm hover:bg-green-500 focus:outline-none sm:text-sm sm:leading-5">
-												Begin Upload
-											</button>
-										</span>
-									</template>
-									<span class="mt-3 flex w-full rounded-md shadow-sm sm:mt-0 sm:w-auto">
-										<button x-on:click="popup = false; ftp = false;" type="button" class="inline-flex justify-center w-full rounded-md border border-gray-300 px-4 py-2 bg-white text-base leading-6 font-medium text-gray-700 shadow-sm hover:text-gray-500 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue transition ease-in-out duration-150 sm:text-sm sm:leading-5">
-											Cancel
-										</button>
-									</span>
-								</div>
-							</template>
-							<template x-if="uploading || upload">
-								<div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-									<div class="sm:flex sm:items-start">
-										<div x-show="uploading" class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6"></div>
-										<div
-											x-show="upload" 
-											:class="{
-												'bg-red-100': !upload.success,
-												'bg-green-100': upload.success || upload 
-											}"
-											class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full sm:mx-0 sm:h-10 sm:w-10"
-										>
-											<svg x-show="upload.success" aria-hidden="true" class="h-6 w-6 text-green-600" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M466.5 83.7l-192-80a48.15 48.15 0 0 0-36.9 0l-192 80C27.7 91.1 16 108.6 16 128c0 198.5 114.5 335.7 221.5 380.3 11.8 4.9 25.1 4.9 36.9 0C360.1 472.6 496 349.3 496 128c0-19.4-11.7-36.9-29.5-44.3zM262.2 478.8c-4 1.6-8.4 1.6-12.3 0C152 440 48 304 48 128c0-6.5 3.9-12.3 9.8-14.8l192-80c3.9-1.6 8.4-1.6 12.3 0l192 80c6 2.5 9.9 8.3 9.8 14.8.1 176-103.9 312-201.7 350.8zm136.2-325c-4.7-4.7-12.3-4.7-17-.1L218 315.8l-69-69.5c-4.7-4.7-12.3-4.7-17-.1l-8.5 8.5c-4.7 4.7-4.7 12.3-.1 17l85.9 86.6c4.7 4.7 12.3 4.7 17 .1l180.5-179c4.7-4.7 4.7-12.3.1-17z" class=""></path></svg>
-											<svg x-show="!upload.success" class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-										</div>
-										<div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-											<h3 x-show="uploading" class="text-lg leading-6 font-medium text-gray-900">Uploading Files...</h3>
-											<h3 x-show="upload.header" class="text-lg leading-6 font-medium text-gray-900" x-text="upload.header"></h3>
-											<div class="mt-2">
-												<p x-show="upload.message" class="text-sm leading-5 text-gray-500" x-html="upload.message">
-												<ul class="leading-5 text-gray-500">
-													<template x-for="file in uploaded">
-														<li x-text="file"></li>
-													</template>
-												</ul>
-											</div>
-										</div>
-									</div>
-								</div>
-								<div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-									<span x-show="finishedUpload" class="flex w-full rounded-md shadow-sm sm:ml-3 sm:w-auto">
-										<a href="#" class="inline-flex justify-center w-full rounded-md border border-transparent px-4 py-2 bg-green-600 text-base leading-6 font-medium text-white shadow-sm hover:bg-green-500 focus:outline-none sm:text-sm sm:leading-5">
-											Go to <span class="mx-1 font-semibold" x-text="websiteName"></span> customizer 
-										</a>
-									</span>
-									<span x-show="!upload.success" class="mt-3 flex w-full rounded-md shadow-sm sm:mt-0 sm:w-auto">
-										<button x-on:click="popup = false; uploading = false; upload = false;" type="button" class="inline-flex justify-center w-full rounded-md border border-gray-300 px-4 py-2 bg-white text-base leading-6 font-medium text-gray-700 shadow-sm hover:text-gray-500 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue transition ease-in-out duration-150 sm:text-sm sm:leading-5">
-											Cancel
-										</button>
-									</span>
-								</div>
-							</template> --}}
-
 							<div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
 								<div class="sm:flex sm:items-start">
 									<div x-show="loading" class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6"></div>
@@ -213,12 +128,12 @@
 						</div>
 					</div>
 				</div>				
-			</template>
+			</template> --}}
 		</div>
 	</div>
 </x-app-layout>
 
-<script>
+{{-- <script>
 	function createWebsite() {
 		return {
 			apiToken: '39vzQuAWM0qxirkpfHLxziokKCIqwj7OrRLdYhNVFOBbTMqJWiNKrKtm58Ae',
@@ -326,67 +241,4 @@
 			}
 		}
 	}
-</script>
-
-
-{{-- 0: "Mobile_Detect.php"
-1: "ajax"
-2: "api.php"
-3: "api.php_bk"
-4: "apply.php"
-5: "apply.png"
-6: "cgi-bin"
-7: "css"
-8: "fonts"
-9: "get-loan.php"
-10: "get-loan.php_bk"
-11: "get-loan2.php"
-12: "iframe.php"
-13: "img"
-14: "includes"
-15: "index.php"
-16: "index.php_bk2"
-17: "js"
-18: "opt-out.php"
-19: "opt-out.php_bk"
-20: "optout.php"
-21: "optout.php_bk"
-22: "payday_api.js"
-23: "payday_api_update_details.js"
-24: "php"
-25: "proxy.php"
-26: "proxy_email_check.php"
-27: "proxy_update.php"
-28: "terms-and-conditions.php"
-29: "update-script.php" --}}
-{{-- Mobile_Detect.php"
-3: "ajax"
-4: "api.php"
-5: "api.php_bk"
-6: "apply.php"
-7: "apply.png"
-8: "cgi-bin"
-9: "css"
-10: "error_log"
-11: "fonts"
-12: "get-loan.php"
-13: "get-loan.php_bk"
-14: "get-loan2.php"
-15: "iframe.php"
-16: "img"
-17: "includes"
-18: "index.php"
-19: "index.php_bk2"
-20: "js"
-21: "opt-out.php"
-22: "opt-out.php_bk"
-23: "optout.php"
-24: "optout.php_bk"
-25: "payday_api.js"
-26: "payday_api_update_details.js"
-27: "php"
-28: "proxy.php"
-29: "proxy_email_check.php"
-30: "proxy_update.php"
-31: "terms-and-conditions.php"
-32: "update-script.php" --}}
+</script> --}}

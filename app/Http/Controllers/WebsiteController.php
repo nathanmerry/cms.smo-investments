@@ -23,7 +23,7 @@ class Websitecontroller extends Controller
      */
     public function index()
     {
-        $query = website::all();
+        $query = Website::all();
 
         $data = $query->map(function ($item) {
             return [
@@ -87,6 +87,30 @@ class Websitecontroller extends Controller
      * @param  \illuminate\http\request  $request
      * @return \illuminate\http\response
      */
+    public function storeCMS(request $request)
+    {
+        $request->validate([
+            'website_name' => 'required|unique:website,website_name',
+            'website_slug' => 'required|unique:website,website_slug',
+            'website_address' => 'required|unique:website,website_address',
+        ]);
+
+        Website::create([
+            'website_name' => $request->website_name,
+            'website_slug' => $request->website_slug,
+            'website_address' => $request->website_address
+        ]);
+
+        return redirect('/websites/' . $request->website_address . '/edit');
+    }
+
+
+    /**
+     * store a newly created resource in storage.
+     *
+     * @param  \illuminate\http\request  $request
+     * @return \illuminate\http\response
+     */
     public function store(request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -102,7 +126,7 @@ class Websitecontroller extends Controller
             ];
         }
 
-        $saved = website::create([
+        $saved = Website::create([
             'website_name' => $request->name,
             'website_slug' => $request->slug
         ]);
@@ -122,7 +146,7 @@ class Websitecontroller extends Controller
 
     public function create(request $request)
     {
-        $query = website::all();
+        $query = Website::all();
 
         $websites = $query->map(function ($item) {
             return [
@@ -131,10 +155,7 @@ class Websitecontroller extends Controller
             ];
         });
 
-        
-        $ftpFiles = scandir(app_path() . '/newSiteFiles');
-        
-        return view('websites.create', ['websites' => $websites, 'ftpFiles' => $ftpFiles]);
+        return view('websites.create', ['websites' => $websites]);
     }
 
     /**
@@ -155,9 +176,9 @@ class Websitecontroller extends Controller
         });
 
         $company = Company::all();
-        
+
         $website = $query->where('website_slug', '=', $slug)->get()->first();
-        
+
         if (!$website) {
             abort(404);
         }
@@ -247,7 +268,7 @@ class Websitecontroller extends Controller
         $query->update($data);
 
         Session::flash('message', $data['website_name'] . ' Updated successfully !');
-        
+
         return redirect('websites/' . $query->get()->first()->website_slug . '/edit');
     }
 
@@ -258,7 +279,7 @@ class Websitecontroller extends Controller
      * @return \illuminate\http\response
      */
     public function destroy()
-    {   
+    {
         DB::table('website')->where('id', request()->id)->delete();
         return redirect('/websites');
     }
