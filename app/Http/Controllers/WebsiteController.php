@@ -101,7 +101,7 @@ class Websitecontroller extends Controller
             'website_address' => $request->website_address
         ]);
 
-        return redirect('/websites/' . $request->website_address . '/edit');
+        return redirect('/websites/' . $request->website_slug . '/edit');
     }
 
 
