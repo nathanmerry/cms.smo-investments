@@ -16,7 +16,7 @@
 	</x-slot>
 	<div class="py-12">
 		<div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-			<form method="POST" action="/websites/store" class="pb-8">
+			<form x-data="ftp()" method="POST" action="/websites/store" class="pb-8">
 				@csrf
 				<div class="grid grid-cols-2 gap-4">
 					<div class="mb-4 p-4 bg-white overflow-hidden shadow-xl sm:rounded-lg">
@@ -26,7 +26,7 @@
 								class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
 								name="website_name"
 								value="{{ old('website_name') }}"
-								required
+								{{-- required --}}
 							>
 							@error('website_name')
 								<p class="mt-3 text-red-600 italic">{{ $errors->first('website_name') }}</p>
@@ -39,7 +39,7 @@
 								placeholder="For CMS purposes only"
 								name="website_slug"
 								value="{{ old('website_slug') }}"
-								required
+								{{-- required --}}
 							>
 							@error('website_slug')
 								<p class="mt-3 text-red-600 italic">{{ $errors->first('website_slug') }}</p>
@@ -52,11 +52,60 @@
 								placeholder="Ensure this is a perfect match to the actual site"
 								name="website_address"
 								value="{{ old('website_address') }}"
-								required
+								{{-- required --}}
 							>
 							@error('website_address')
 								<p class="mt-3 text-red-600 italic">{{ $errors->first('website_address') }}</p>
 							@enderror
+						</div>
+					</div>
+					<div class="flex flex-col mb-4 p-4 bg-white overflow-hidden shadow-xl sm:rounded-lg">
+						<div class="mb-4">
+							<label class="block text-gray-700 text-sm font-bold mb-2">FTP username</label>
+							<input
+								class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+								name="ftp_username"
+								value="{{ old('ftp_username') }}"
+								x-model="ftpUser"
+								{{-- required --}}
+							>
+							@error('website_name')
+								<p class="mt-3 text-red-600 italic">{{ $errors->first('ftp_username') }}</p>
+							@enderror
+						</div>
+						<div class="mb-4">
+							<label class="block text-gray-700 text-sm font-bold mb-2">FTP password</label>
+							<input
+								class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+								name="ftp_password"
+								value="{{ old('ftp_password') }}"
+								x-model="ftpPassword"
+								{{-- required --}}
+							>
+							@error('website_name')
+								<p class="mt-3 text-red-600 italic">{{ $errors->first('ftp_password') }}</p>
+							@enderror
+						</div>
+						<div class="flex flex-1 items-end mb-4">
+							<div class="flex items-center justify-between flex-1">
+								<button 
+									x-on:click="onClickCheckLogin(event)"
+									class="bg-transparent hover:bg-gray-200 font-semibold py-2 px-4 border border-grey-500 rounded hover:shadow"
+								>Test FTP connection</button>
+								<div x-show="loginCheckLoading">
+									<div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6"></div>
+								</div>
+								<template x-if="loginCheck">
+									<p 
+										x-text="loginCheck.message" 
+										class="font-bold"
+										:class="{
+											'text-red-500' : !loginCheck.success,
+											'text-green-500' : loginCheck.success
+										}"
+									></p>
+								</template>
+							</div>
 						</div>
 					</div>
 				</div>
