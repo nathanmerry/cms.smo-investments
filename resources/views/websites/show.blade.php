@@ -96,12 +96,33 @@
                   <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ $key }}">
                     {{ str_replace('_', ' ', $key) }}
                   </label>
-                  <input
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    value="{{ $value }}" name="{{ $key }}">
+									<input
+										class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+										x-model="{{ $key }}"
+										:value="{{ $key }}"
+										name="{{ $key }}">
                 </div>
-              @endforeach 
-            </div>
+							@endforeach 
+							<div class="flex items-center justify-between flex-1">
+								<button
+									x-on:click="onClickCheckLogin(event)"
+									class="bg-transparent hover:bg-gray-200 font-semibold py-2 px-4 border border-grey-500 rounded hover:shadow"
+								>Test FTP connection</button>
+								<div x-show="loginCheckLoading">
+									<div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6"></div>
+								</div>
+								<template x-if="loginCheck">
+									<p 
+										x-text="loginCheck.message" 
+										class="font-bold"
+										:class="{
+											'text-red-500' : !loginCheck.success,
+											'text-green-500' : loginCheck.success
+										}"
+									></p>
+								</template>
+							</div>
+						</div>
             <div class="mb-4 p-4 bg-white overflow-hidden shadow-xl sm:rounded-lg">
               @foreach ($data['form']['color'] as $key => $value)
                 <div class="mb-4">
@@ -128,12 +149,12 @@
             @if(Session::has('message'))
               <p class="text-lg font-semibold text-green-500">{{ Session::get('message') }}</p>
             @endif
-            <button
+            <div
               x-on:click="displayPopup(event)"
               class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             >
               Delete Website
-            </button>
+						</div>
           </div>
         </div>		
       </form>
@@ -179,16 +200,39 @@
 <script>
   function websiteForm() {
     return {
+			apiToken: '39vzQuAWM0qxirkpfHLxziokKCIqwj7OrRLdYhNVFOBbTMqJWiNKrKtm58Ae',
       colors: @php echo json_encode($data['form']['color']) @endphp,
       imageUrl: @php echo json_encode($data['form']['logo_url']) @endphp,   
-      popup: false,   
+			popup: false,
+
+			ftp_username: @php echo json_encode($data['form']['ftp']['ftp_username']) @endphp,
+			ftp_password: @php echo json_encode($data['form']['ftp']['ftp_password']) @endphp,
+			loginCheckLoading: false,
+			loginCheck: false,
 
       displayPopup(event) {
 				event.preventDefault();
         this.popup = true;
-      }
-    };
+			},
 
+			onClickCheckLogin(event) {
+				event.preventDefault();
+				this.loginCheck = false;
+				this.loginCheckLoading = true;
+
+				this.checkLoginDetails(this.ftp_username, this.ftp_password, this.apiToken).then(res => {
+					this.loginCheckLoading = false;
+					this.loginCheck = res;
+				})
+			},
+			
+			async checkLoginDetails(username, password, apiToken) {
+				const response = await fetch(`https://master-theme.cmlo.uk/src/check-login.php?api_token=${apiToken}&username=${username}&password=${password}`);
+				const parsed = await response.json();
+
+				return parsed;
+			}
+    }
   }
 </script>
 

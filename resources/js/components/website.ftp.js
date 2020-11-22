@@ -61,11 +61,7 @@ window.fileTransfer = function() {
 			} else {
 				return;
 			}
-		}, 
-
-		uploadToSite(index) {
 		},
- 
 
 		async checkFtpConn(site, index) {
 			this.popupSubHeader = `Checking ${site.website_short_address} FTP connection...`;

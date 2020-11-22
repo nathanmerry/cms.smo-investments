@@ -35642,7 +35642,6 @@ window.fileTransfer = function () {
         return;
       }
     },
-    uploadToSite: function uploadToSite(index) {},
     checkFtpConn: function checkFtpConn(site, index) {
       var _this3 = this;
 
