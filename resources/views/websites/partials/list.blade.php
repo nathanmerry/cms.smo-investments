@@ -15,9 +15,9 @@
 			@foreach($websites as $item)
 					<a 
 						class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out" 
-						href="/websites/{{$item['slug']}}/edit"
+						href="/websites/{{$item['website_slug']}}/edit"
 					>
-						{{ __($item['name']) }}
+						{{ __($item['website_name']) }}
 					</a>
 				<div class="border-t border-gray-100"></div>
 			@endforeach

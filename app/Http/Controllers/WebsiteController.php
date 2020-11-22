@@ -23,25 +23,21 @@ class Websitecontroller extends Controller
 	public function index()
 	{
 		$query = Website::all();
-
-		$data = $query->map(function ($item) {
-			return [
-				'name' => $item->website_name,
-				'slug' => $item->website_slug
-			];
-		});
-
-		return view('websites.index', ['data' => $data]);
+		return view('websites.index', ['data' => $query]);
 	}
 
-
+	public function indexApi()
+	{
+		$query = Website::all();
+		return $query;
+	}
 	/**
 	 * store a newly created resource in storage.
 	 *
 	 * @param  \illuminate\http\request  $request
 	 * @return \illuminate\http\response
 	 */
-	public function storeCMS(request $request)
+	public function store(request $request)
 	{
 		$request->validate([
 			'website_name' => 'required|unique:website,website_name',
@@ -62,60 +58,10 @@ class Websitecontroller extends Controller
 		return redirect('/websites/' . $request->website_slug . '/edit');
 	}
 
-	/**
-	 * store a newly created resource in storage.
-	 *
-	 * @param  \illuminate\http\request  $request
-	 * @return \illuminate\http\response
-	 */
-	public function store(request $request)
-	{
-		dd('gello');
-		/*
-        $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'slug' => 'required|unique:websites,website_slug',
-        ]);
-
-        if ($validator->fails()) {
-            return [
-                'success' => false,
-                'header' => 'Upload failed',
-                'message' => 'This website already exists! Please choose another one and ensure the slug is unique.',
-            ];
-        }
-
-        $saved = Website::create([
-            'website_name' => $request->name,
-            'website_slug' => $request->slug
-        ]);
-
-        if ($saved) {
-            return [
-                'success' => true,
-                'message' => 'website saved to cMs'
-            ];
-        } else {
-            return [
-                'success' => false,
-                'message' => 'could not save website to cMs!',
-            ];
-        }
-        */
-	}
-
 	public function create(request $request)
 	{
 		$query = Website::all();
-
-		$websites = $query->map(function ($item) {
-			return [
-				'name' => $item->{'website_name'},
-				'slug' => $item->{'website_slug'}
-			];
-		});
-
-		return view('websites.create', ['websites' => $websites]);
+		return view('websites.create', ['websites' => $query]);
 	}
 
 	/**
@@ -128,12 +74,7 @@ class Websitecontroller extends Controller
 	{
 		$query = DB::table('website');
 
-		$websites = $query->get()->map(function ($item) {
-			return [
-				'name' => $item->{'website_name'},
-				'slug' => $item->website_slug
-			];
-		});
+		$websites = Website::all();
 
 		$company = Company::all();
 
@@ -246,5 +187,13 @@ class Websitecontroller extends Controller
 	{
 		DB::table('website')->where('id', request()->id)->delete();
 		return redirect('/websites');
+	}
+
+	public function ftp()
+	{
+		$collection = Website::all();
+		$data = $collection->sortBy('website_name');
+		
+		return view('websites.ftp', ['data' => $data]);
 	}
 }

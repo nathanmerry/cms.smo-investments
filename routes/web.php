@@ -11,8 +11,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/websites/{website}/edit', [WebsiteController::class, 'show'])->name('website');;
     Route::post('/websites/save', [WebsiteController::class, 'update']);
     Route::get('/websites/create', [WebsiteController::class, 'create'])->name('create');
-    Route::post('/websites/store', [WebsiteController::class, 'storeCMS']);
+    Route::post('/websites/store', [WebsiteController::class, 'store']);
     Route::post('/websites/delete', [WebsiteController::class, 'destroy']);
+    Route::get('/websites/ftp', [WebsiteController::class, 'ftp'])->name('websites-ftp');
 
     // companies
     Route::get('/companies', [CompanyController::class, 'index'])->name('companies');

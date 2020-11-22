@@ -176,6 +176,9 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
   function isTesting() {
     return navigator.userAgent.includes("Node.js") || navigator.userAgent.includes("jsdom");
   }
+  function checkedAttrLooseCompare(valueA, valueB) {
+    return valueA == valueB;
+  }
   function warnIfMalformedTemplate(el, directive) {
     if (el.tagName.toLowerCase() !== 'template') {
       console.warn(`Alpine: [${directive}] directive should only be added to <template> tags. See https://github.com/alpinejs/alpine#${directive}`);
@@ -312,7 +315,8 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
   }
   const TRANSITION_TYPE_IN = 'in';
   const TRANSITION_TYPE_OUT = 'out';
-  function transitionIn(el, show, component, forceSkip = false) {
+  const TRANSITION_CANCELLED = 'cancelled';
+  function transitionIn(el, show, reject, component, forceSkip = false) {
     // We don't want to transition on the initial page load.
     if (forceSkip) return show();
 
@@ -332,15 +336,15 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
       const settingBothSidesOfTransition = modifiers.includes('in') && modifiers.includes('out'); // If x-show.transition.in...out... only use "in" related modifiers for this transition.
 
       modifiers = settingBothSidesOfTransition ? modifiers.filter((i, index) => index < modifiers.indexOf('out')) : modifiers;
-      transitionHelperIn(el, modifiers, show); // Otherwise, we can assume x-transition:enter.
+      transitionHelperIn(el, modifiers, show, reject); // Otherwise, we can assume x-transition:enter.
     } else if (attrs.some(attr => ['enter', 'enter-start', 'enter-end'].includes(attr.value))) {
-      transitionClassesIn(el, component, attrs, show);
+      transitionClassesIn(el, component, attrs, show, reject);
     } else {
       // If neither, just show that damn thing.
       show();
     }
   }
-  function transitionOut(el, hide, component, forceSkip = false) {
+  function transitionOut(el, hide, reject, component, forceSkip = false) {
     // We don't want to transition on the initial page load.
     if (forceSkip) return hide();
 
@@ -358,14 +362,14 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
       if (modifiers.includes('in') && !modifiers.includes('out')) return hide();
       const settingBothSidesOfTransition = modifiers.includes('in') && modifiers.includes('out');
       modifiers = settingBothSidesOfTransition ? modifiers.filter((i, index) => index > modifiers.indexOf('out')) : modifiers;
-      transitionHelperOut(el, modifiers, settingBothSidesOfTransition, hide);
+      transitionHelperOut(el, modifiers, settingBothSidesOfTransition, hide, reject);
     } else if (attrs.some(attr => ['leave', 'leave-start', 'leave-end'].includes(attr.value))) {
-      transitionClassesOut(el, component, attrs, hide);
+      transitionClassesOut(el, component, attrs, hide, reject);
     } else {
       hide();
     }
   }
-  function transitionHelperIn(el, modifiers, showCallback) {
+  function transitionHelperIn(el, modifiers, showCallback, reject) {
     // Default values inspired by: https://material.io/design/motion/speed.html#duration
     const styleValues = {
       duration: modifierValue(modifiers, 'duration', 150),
@@ -379,9 +383,9 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
         scale: 100
       }
     };
-    transitionHelper(el, modifiers, showCallback, () => {}, styleValues, TRANSITION_TYPE_IN);
+    transitionHelper(el, modifiers, showCallback, () => {}, reject, styleValues, TRANSITION_TYPE_IN);
   }
-  function transitionHelperOut(el, modifiers, settingBothSidesOfTransition, hideCallback) {
+  function transitionHelperOut(el, modifiers, settingBothSidesOfTransition, hideCallback, reject) {
     // Make the "out" transition .5x slower than the "in". (Visually better)
     // HOWEVER, if they explicitly set a duration for the "out" transition,
     // use that.
@@ -398,7 +402,7 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
         scale: modifierValue(modifiers, 'scale', 95)
       }
     };
-    transitionHelper(el, modifiers, () => {}, hideCallback, styleValues, TRANSITION_TYPE_OUT);
+    transitionHelper(el, modifiers, () => {}, hideCallback, reject, styleValues, TRANSITION_TYPE_OUT);
   }
 
   function modifierValue(modifiers, key, fallback) {
@@ -431,11 +435,10 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
     return rawValue;
   }
 
-  function transitionHelper(el, modifiers, hook1, hook2, styleValues, type) {
+  function transitionHelper(el, modifiers, hook1, hook2, reject, styleValues, type) {
     // clear the previous transition if exists to avoid caching the wrong styles
     if (el.__x_transition) {
-      cancelAnimationFrame(el.__x_transition.nextFrame);
-      el.__x_transition.callback && el.__x_transition.callback();
+      el.__x_transition.cancel && el.__x_transition.cancel();
     } // If the user set these style values, we'll put them back when we're done with them.
 
 
@@ -485,41 +488,41 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
       }
 
     };
-    transition(el, stages, type);
+    transition(el, stages, type, reject);
   }
-  function transitionClassesIn(el, component, directives, showCallback) {
-    let ensureStringExpression = expression => {
-      return typeof expression === 'function' ? component.evaluateReturnExpression(el, expression) : expression;
-    };
 
+  const ensureStringExpression = (expression, el, component) => {
+    return typeof expression === 'function' ? component.evaluateReturnExpression(el, expression) : expression;
+  };
+
+  function transitionClassesIn(el, component, directives, showCallback, reject) {
     const enter = convertClassStringToArray(ensureStringExpression((directives.find(i => i.value === 'enter') || {
       expression: ''
-    }).expression));
+    }).expression, el, component));
     const enterStart = convertClassStringToArray(ensureStringExpression((directives.find(i => i.value === 'enter-start') || {
       expression: ''
-    }).expression));
+    }).expression, el, component));
     const enterEnd = convertClassStringToArray(ensureStringExpression((directives.find(i => i.value === 'enter-end') || {
       expression: ''
-    }).expression));
-    transitionClasses(el, enter, enterStart, enterEnd, showCallback, () => {}, TRANSITION_TYPE_IN);
+    }).expression, el, component));
+    transitionClasses(el, enter, enterStart, enterEnd, showCallback, () => {}, TRANSITION_TYPE_IN, reject);
   }
-  function transitionClassesOut(el, component, directives, hideCallback) {
-    const leave = convertClassStringToArray((directives.find(i => i.value === 'leave') || {
+  function transitionClassesOut(el, component, directives, hideCallback, reject) {
+    const leave = convertClassStringToArray(ensureStringExpression((directives.find(i => i.value === 'leave') || {
       expression: ''
-    }).expression);
-    const leaveStart = convertClassStringToArray((directives.find(i => i.value === 'leave-start') || {
+    }).expression, el, component));
+    const leaveStart = convertClassStringToArray(ensureStringExpression((directives.find(i => i.value === 'leave-start') || {
       expression: ''
-    }).expression);
-    const leaveEnd = convertClassStringToArray((directives.find(i => i.value === 'leave-end') || {
+    }).expression, el, component));
+    const leaveEnd = convertClassStringToArray(ensureStringExpression((directives.find(i => i.value === 'leave-end') || {
       expression: ''
-    }).expression);
-    transitionClasses(el, leave, leaveStart, leaveEnd, () => {}, hideCallback, TRANSITION_TYPE_OUT);
+    }).expression, el, component));
+    transitionClasses(el, leave, leaveStart, leaveEnd, () => {}, hideCallback, TRANSITION_TYPE_OUT, reject);
   }
-  function transitionClasses(el, classesDuring, classesStart, classesEnd, hook1, hook2, type) {
+  function transitionClasses(el, classesDuring, classesStart, classesEnd, hook1, hook2, type, reject) {
     // clear the previous transition if exists to avoid caching the wrong classes
     if (el.__x_transition) {
-      cancelAnimationFrame(el.__x_transition.nextFrame);
-      el.__x_transition.callback && el.__x_transition.callback();
+      el.__x_transition.cancel && el.__x_transition.cancel();
     }
 
     const originalClasses = el.__x_original_classes || [];
@@ -552,25 +555,30 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
       }
 
     };
-    transition(el, stages, type);
+    transition(el, stages, type, reject);
   }
-  function transition(el, stages, type) {
+  function transition(el, stages, type, reject) {
+    const finish = once(() => {
+      stages.hide(); // Adding an "isConnected" check, in case the callback
+      // removed the element from the DOM.
+
+      if (el.isConnected) {
+        stages.cleanup();
+      }
+
+      delete el.__x_transition;
+    });
     el.__x_transition = {
       // Set transition type so we can avoid clearing transition if the direction is the same
       type: type,
       // create a callback for the last stages of the transition so we can call it
       // from different point and early terminate it. Once will ensure that function
       // is only called one time.
-      callback: once(() => {
-        stages.hide(); // Adding an "isConnected" check, in case the callback
-        // removed the element from the DOM.
-
-        if (el.isConnected) {
-          stages.cleanup();
-        }
-
-        delete el.__x_transition;
+      cancel: once(() => {
+        reject(TRANSITION_CANCELLED);
+        finish();
       }),
+      finish,
       // This store the next animation frame so we can cancel it
       nextFrame: null
     };
@@ -588,12 +596,12 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
       stages.show();
       el.__x_transition.nextFrame = requestAnimationFrame(() => {
         stages.end();
-        setTimeout(el.__x_transition.callback, duration);
+        setTimeout(el.__x_transition.finish, duration);
       });
     });
   }
   function isNumeric(subject) {
-    return !isNaN(subject);
+    return !Array.isArray(subject) && !isNaN(subject);
   } // Thanks @vuejs
   // https://github.com/vuejs/vue/blob/4de4649d9637262a9b007720b59f80ac72a5620c/src/shared/util.js
 
@@ -621,7 +629,7 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
       if (!nextEl) {
         nextEl = addElementInLoopAfterCurrentEl(templateEl, currentEl); // And transition it in if it's not the first page load.
 
-        transitionIn(nextEl, () => {}, component, initialUpdate);
+        transitionIn(nextEl, () => {}, () => {}, component, initialUpdate);
         nextEl.__x_for = iterationScopeVariables;
         component.initializeElements(nextEl, () => nextEl.__x_for); // Otherwise update the element we found.
       } else {
@@ -683,14 +691,15 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
 
     if (ifAttribute && !component.evaluateReturnExpression(el, ifAttribute.expression)) {
       return [];
-    } // This adds support for the `i in n` syntax.
-
-
-    if (isNumeric(iteratorNames.items)) {
-      return Array.from(Array(parseInt(iteratorNames.items, 10)).keys(), i => i + 1);
     }
 
-    return component.evaluateReturnExpression(el, iteratorNames.items, extraVars);
+    let items = component.evaluateReturnExpression(el, iteratorNames.items, extraVars); // This adds support for the `i in n` syntax.
+
+    if (isNumeric(items) && items > 0) {
+      items = Array.from(Array(items).keys(), i => i + 1);
+    }
+
+    return items;
   }
 
   function addElementInLoopAfterCurrentEl(templateEl, currentEl) {
@@ -724,7 +733,7 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
       let nextSibling = nextElementFromOldLoop.nextElementSibling;
       transitionOut(nextElementFromOldLoop, () => {
         nextElementFromOldLoopImmutable.remove();
-      }, component);
+      }, () => {}, component);
       nextElementFromOldLoop = nextSibling && nextSibling.__x_for_key !== undefined ? nextSibling : false;
     }
   }
@@ -746,20 +755,20 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
         if (el.attributes.value === undefined && attrType === 'bind') {
           el.value = value;
         } else if (attrType !== 'bind') {
-          el.checked = el.value == value;
+          el.checked = checkedAttrLooseCompare(el.value, value);
         }
       } else if (el.type === 'checkbox') {
         // If we are explicitly binding a string to the :value, set the string,
         // If the value is a boolean, leave it alone, it will be set to "on"
         // automatically.
-        if (typeof value === 'string' && attrType === 'bind') {
-          el.value = value;
+        if (typeof value !== 'boolean' && ![null, undefined].includes(value) && attrType === 'bind') {
+          el.value = String(value);
         } else if (attrType !== 'bind') {
           if (Array.isArray(value)) {
             // I'm purposely not using Array.includes here because it's
             // strict, and because of Numeric/String mis-casting, I
             // want the "includes" to be "fuzzy".
-            el.checked = value.some(val => val == el.value);
+            el.checked = value.some(val => checkedAttrLooseCompare(val, el.value));
           } else {
             el.checked = !!value;
           }
@@ -832,6 +841,7 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
   function handleShowDirective(component, el, value, modifiers, initialUpdate = false) {
     const hide = () => {
       el.style.display = 'none';
+      el.__x_is_shown = false;
     };
 
     const show = () => {
@@ -840,6 +850,8 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
       } else {
         el.style.removeProperty('display');
       }
+
+      el.__x_is_shown = true;
     };
 
     if (initialUpdate === true) {
@@ -852,12 +864,12 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
       return;
     }
 
-    const handle = resolve => {
+    const handle = (resolve, reject) => {
       if (value) {
         if (el.style.display === 'none' || el.__x_transition) {
           transitionIn(el, () => {
             show();
-          }, component);
+          }, reject, component);
         }
 
         resolve(() => {});
@@ -867,7 +879,7 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
             resolve(() => {
               hide();
             });
-          }, component);
+          }, reject, component);
         } else {
           resolve(() => {});
         }
@@ -879,7 +891,7 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
 
 
     if (modifiers.includes('immediate')) {
-      handle(finish => finish());
+      handle(finish => finish(), () => {});
       return;
     } // x-show is encountered during a DOM tree walk. If an element
     // we encounter is NOT a child of another x-show element we
@@ -901,13 +913,13 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
     if (expressionResult && (!elementHasAlreadyBeenAdded || el.__x_transition)) {
       const clone = document.importNode(el.content, true);
       el.parentElement.insertBefore(clone, el.nextElementSibling);
-      transitionIn(el.nextElementSibling, () => {}, component, initialUpdate);
+      transitionIn(el.nextElementSibling, () => {}, () => {}, component, initialUpdate);
       component.initializeElements(el.nextElementSibling, extraVars);
       el.nextElementSibling.__x_inserted_me = true;
     } else if (!expressionResult && elementHasAlreadyBeenAdded) {
       transitionOut(el.nextElementSibling, () => {
         el.nextElementSibling.remove();
-      }, component, initialUpdate);
+      }, () => {}, component, initialUpdate);
     }
   }
 
@@ -1075,7 +1087,7 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
         // If the data we are binding to is an array, toggle its value inside the array.
         if (Array.isArray(currentValue)) {
           const newValue = modifiers.includes('number') ? safeParseNumber(event.target.value) : event.target.value;
-          return event.target.checked ? currentValue.concat([newValue]) : currentValue.filter(i => i !== newValue);
+          return event.target.checked ? currentValue.concat([newValue]) : currentValue.filter(el => !checkedAttrLooseCompare(el, newValue));
         } else {
           return event.target.checked;
         }
@@ -1538,7 +1550,11 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
       this.unobservedData.$watch = (property, callback) => {
         if (!this.watchers[property]) this.watchers[property] = [];
         this.watchers[property].push(callback);
-      }; // Register custom magic properties.
+      };
+      /* MODERN-ONLY:START */
+      // We remove this piece of code from the legacy build.
+      // In IE11, we have already defined our helpers at this point.
+      // Register custom magic properties.
 
 
       Object.entries(Alpine.magicProperties).forEach(([name, callback]) => {
@@ -1548,6 +1564,8 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
           }
         });
       });
+      /* MODERN-ONLY:END */
+
       this.showDirectiveStack = [];
       this.showDirectiveLastElement;
       componentForClone || Alpine.onBeforeComponentInitializeds.forEach(callback => callback(this));
@@ -1605,7 +1623,7 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
               }
 
               return comparisonData[part];
-            }, self.getUnobservedData());
+            }, self.unobservedData);
           });
         } else {
           // Let's walk through the watchers with "dot-notation" (foo.bar) and see
@@ -1624,7 +1642,7 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
               }
 
               return comparisonData[part];
-            }, self.getUnobservedData());
+            }, self.unobservedData);
           });
         } // Don't react to data changes for cases like the `x-created` hook.
 
@@ -1705,17 +1723,19 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
       // The goal here is to start all the x-show transitions
       // and build a nested promise chain so that elements
       // only hide when the children are finished hiding.
-      this.showDirectiveStack.reverse().map(thing => {
-        return new Promise(resolve => {
-          thing(finish => {
-            resolve(finish);
+      this.showDirectiveStack.reverse().map(handler => {
+        return new Promise((resolve, reject) => {
+          handler(resolve, reject);
+        });
+      }).reduce((promiseChain, promise) => {
+        return promiseChain.then(() => {
+          return promise.then(finishElement => {
+            finishElement();
           });
         });
-      }).reduce((nestedPromise, promise) => {
-        return nestedPromise.then(() => {
-          return promise.then(finish => finish());
-        });
-      }, Promise.resolve(() => {})); // We've processed the handler stack. let's clear it.
+      }, Promise.resolve(() => {})).catch(e => {
+        if (e !== TRANSITION_CANCELLED) throw e;
+      }); // We've processed the handler stack. let's clear it.
 
       this.showDirectiveStack = [];
       this.showDirectiveLastElement = undefined;
@@ -1886,7 +1906,7 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
   }
 
   const Alpine = {
-    version: "2.7.0",
+    version: "2.7.3",
     pauseMutationObserver: false,
     magicProperties: {},
     onComponentInitializeds: [],
@@ -1907,9 +1927,7 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
           this.initializeComponent(el);
         });
       });
-      this.listenForNewUninitializedComponentsAtRunTime(el => {
-        this.initializeComponent(el);
-      });
+      this.listenForNewUninitializedComponentsAtRunTime();
     },
     discoverComponents: function discoverComponents(callback) {
       const rootEls = document.querySelectorAll('[x-data]');
@@ -1923,7 +1941,7 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
         callback(rootEl);
       });
     },
-    listenForNewUninitializedComponentsAtRunTime: function listenForNewUninitializedComponentsAtRunTime(callback) {
+    listenForNewUninitializedComponentsAtRunTime: function listenForNewUninitializedComponentsAtRunTime() {
       const targetNode = document.querySelector('body');
       const observerOptions = {
         childList: true,
@@ -22017,7 +22035,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var alpinejs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! alpinejs */ "./node_modules/alpinejs/dist/alpine.js");
 /* harmony import */ var alpinejs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(alpinejs__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _components_website_create__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./components/website.create */ "./resources/js/components/website.create.js");
+/* harmony import */ var _components_website_ftp__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./components/website.ftp */ "./resources/js/components/website.ftp.js");
 __webpack_require__(/*! ./bootstrap */ "./resources/js/bootstrap.js");
+
 
 
 
@@ -22092,16 +22112,164 @@ window.ftp = function () {
 
 /***/ }),
 
+/***/ "./resources/js/components/website.ftp.js":
+/*!************************************************!*\
+  !*** ./resources/js/components/website.ftp.js ***!
+  \************************************************/
+/*! no exports provided */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _master_theme_service__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../master-theme.service */ "./resources/js/master-theme.service.js");
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+
+
+window.fileTransfer = function () {
+  return {
+    cmsApiToken: 'di9wkJLuLbhwALhKzIIVyseALOCUhBZIjRPDJbqlriDYqFBLsANtkFtt4Tx9',
+    ftpApiToken: '39vzQuAWM0qxirkpfHLxziokKCIqwj7OrRLdYhNVFOBbTMqJWiNKrKtm58Ae',
+    allSites: null,
+    selected: [],
+    allSelected: false,
+    checked: [],
+    sitesToUpload: [],
+    popup: false,
+    noSitesChose: false,
+    popupHeader: 'Please confirm these are the sites you would like to upload:',
+    popupSubHeader: null,
+    popupApiResponse: [],
+    popupLoginResponse: [],
+    popupFilesResponse: [],
+    popupResponseMessage: [],
+    uploading: false,
+    onClickOpenPopup: function onClickOpenPopup(event) {
+      var _this = this;
+
+      event.preventDefault();
+
+      if (!this.checked.length) {
+        this.noSitesChose = true;
+      } else {
+        this.popup = true;
+        this.noSitesChose = false;
+        this.sitesToUpload = this.allSites.filter(function (site) {
+          return _this.indexOf(_this.checked, site.id) !== -1;
+        });
+      }
+    },
+    onClickStartUpload: function onClickStartUpload(index) {
+      this.uploading = true;
+      this.popupHeader = "Upload has began";
+      this.startUpload(-1);
+    },
+    startUpload: function startUpload(index) {
+      var _this2 = this;
+
+      index = index + 1;
+
+      if (index < this.sitesToUpload.length) {
+        var site = this.sitesToUpload[index]; // this.sitesToUpload[index].ftp = {};
+
+        this.checkFtpConn(site, index).then(function () {
+          _this2.sitesToUpload[index].ftp;
+        });
+        this.startUpload(index);
+      } else {
+        return;
+      }
+    },
+    uploadToSite: function uploadToSite(index) {},
+    checkFtpConn: function checkFtpConn(site, index) {
+      var _this3 = this;
+
+      return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee() {
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _this3.popupSubHeader = "Checking ".concat(site.website_short_address, " FTP connection...");
+
+                if (!site.ftp_password || !site.ftp_username) {
+                  _this3.sitesToUpload[index].ftp.login = {
+                    success: false,
+                    message: 'please provide and ftp username and password'
+                  };
+                } else {
+                  Object(_master_theme_service__WEBPACK_IMPORTED_MODULE_1__["checkLoginDetails"])(site.ftp_username, site.ftp_password, _this3.ftpApiToken).then(function (res) {
+                    if (res.success) {
+                      _this3.sitesToUpload[index].ftp.login = {
+                        success: false,
+                        message: 'please provide and ftp username and password'
+                      };
+                    } else {
+                      _this3.sitesToUpload[index].ftp.login = res;
+                    }
+                  });
+                }
+
+                console.log(_this3.sitesToUpload[index].ftp);
+
+              case 3:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee);
+      }))();
+    },
+    fetchWebsites: function fetchWebsites(apiToken) {
+      var _this4 = this;
+
+      Object(_master_theme_service__WEBPACK_IMPORTED_MODULE_1__["getAllWebsites"])(apiToken).then(function (res) {
+        return _this4.allSites = res;
+      });
+    },
+    indexOf: function indexOf(array, item) {
+      for (var i = 0; i < array.length; i++) {
+        if (array[i].toString() === item.toString()) return i;
+      }
+
+      return -1;
+    },
+    selectAll: function selectAll() {
+      var _this5 = this;
+
+      this.checked = [];
+
+      if (!this.allSelected) {
+        this.allSites.forEach(function (site) {
+          _this5.checked.push(site.id.toString());
+        });
+      }
+    },
+    select: function select() {
+      this.allSelected = false;
+    }
+  };
+};
+
+/***/ }),
+
 /***/ "./resources/js/master-theme.service.js":
 /*!**********************************************!*\
   !*** ./resources/js/master-theme.service.js ***!
   \**********************************************/
-/*! exports provided: checkLoginDetails */
+/*! exports provided: checkLoginDetails, uploadSite, getAllWebsites */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "checkLoginDetails", function() { return checkLoginDetails; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "uploadSite", function() { return uploadSite; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getAllWebsites", function() { return getAllWebsites; });
 /* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
 /* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
 
@@ -22118,7 +22286,7 @@ var checkLoginDetails = /*#__PURE__*/function () {
         switch (_context.prev = _context.next) {
           case 0:
             _context.next = 2;
-            return fetch("http://smo-theme.test/api/check-login?api_token=".concat(apiToken, "&username=").concat(username, "&password=").concat(password));
+            return fetch("https://master-theme.cmlo.uk/src/check-login.php?api_token=".concat(apiToken, "&username=").concat(username, "&password=").concat(password));
 
           case 2:
             response = _context.sent;
@@ -22142,6 +22310,72 @@ var checkLoginDetails = /*#__PURE__*/function () {
   }
 
   return checkLoginDetails;
+}();
+var uploadSite = /*#__PURE__*/function () {
+  var _checkLoginDetails2 = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee2(username, password, apiToken) {
+    var response, parsed;
+    return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            _context2.next = 2;
+            return fetch("https://master-theme.cmlo.uk/src/files.php?api_token=".concat(apiToken, "&username=").concat(username, "&password=").concat(password));
+
+          case 2:
+            response = _context2.sent;
+            _context2.next = 5;
+            return response.json();
+
+          case 5:
+            parsed = _context2.sent;
+            return _context2.abrupt("return", parsed);
+
+          case 7:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+
+  function checkLoginDetails(_x4, _x5, _x6) {
+    return _checkLoginDetails2.apply(this, arguments);
+  }
+
+  return checkLoginDetails;
+}();
+var getAllWebsites = /*#__PURE__*/function () {
+  var _getAllWebsites = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee3(apiToken) {
+    var response, parsed;
+    return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            _context3.next = 2;
+            return fetch("/api/websites/index/?api_token=".concat(apiToken));
+
+          case 2:
+            response = _context3.sent;
+            _context3.next = 5;
+            return response.json();
+
+          case 5:
+            parsed = _context3.sent;
+            return _context3.abrupt("return", parsed);
+
+          case 7:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3);
+  }));
+
+  function getAllWebsites(_x7) {
+    return _getAllWebsites.apply(this, arguments);
+  }
+
+  return getAllWebsites;
 }();
 
 /***/ }),

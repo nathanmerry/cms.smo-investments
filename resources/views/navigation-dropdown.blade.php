@@ -5,18 +5,22 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="flex-shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
+										<a href="{{ route('dashboard') }}">
                         <img src="{{ asset('/images/smo-custormizer.png') }}" alt="" style="max-height: 50px">
                         {{-- <x-jet-application-mark class="block h-9 w-auto" /> --}}
                     </a>
                 </div>
                 <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                    <x-jet-nav-link href="{{ route('websites') }}" :active="request()->routeIs('websites') || request()->routeIs('website')">
-                        {{ __('Websites') }}
-                    </x-jet-nav-link>
-                </div>
-
+								<div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+									<x-jet-nav-link href="{{ route('websites') }}" :active="request()->routeIs('websites') || request()->routeIs('website')">
+											{{ __('Websites') }}
+									</x-jet-nav-link>
+								</div>
+								<div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+									<x-jet-nav-link href="{{ route('websites-ftp') }}" :active="request()->routeIs('websites-ftp')">
+											{{ __('Master Theme') }}
+									</x-jet-nav-link>
+								</div>
                 <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                     <x-jet-nav-link href="{{ route('companies') }}" :active="request()->routeIs('companies') || request()->routeIs('company')">
                         {{ __('Companies') }}

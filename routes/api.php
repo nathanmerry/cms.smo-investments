@@ -11,4 +11,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::middleware('auth:api')->post('/website-ftp', [WebsiteController::class, 'storeNewSiteFiles']);
 Route::middleware('auth:api')->get('/check-ftp-login', [WebsiteController::class, 'checkFtpLogin']);
 
+Route::middleware('auth:api')->get('/websites/index', [WebsiteController::class, 'indexApi']);
+
 Route::post('/website-store', [WebsiteController::class, 'store']);
